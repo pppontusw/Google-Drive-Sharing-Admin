@@ -1,0 +1,23 @@
+{% extends "main.html" %}
+{% block content %}
+<div class="container-fluid">
+<div class="col-md-12">
+  <div class="row">
+  	{% if error %}
+	    <div class="alert alert-danger" role="alert"><span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span> {{error}}
+	    </div>
+    {% endif %}
+    </div>
+  <div id="users" class="row">
+    <div class="input-group col-md-4">
+      <!--<span class="input-group-addon" id="basic-addon1">Search</span> 
+      <div class="form-group">
+        {{ searchform.hidden_tag() }}
+        {{ searchform.searchuser(size=20, class="form-control", placeholder="Search")}} 
+      </div>-->
+    </div>
+  </div>{{users}}
+</div>
+</div>
+
+{% endblock %}

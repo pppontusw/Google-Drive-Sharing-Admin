@@ -1,0 +1,45 @@
+{% extends "main.html" %}
+{% block content %}
+<div class="container-fluid">
+<div class="col-md-12">
+  <div class="row">
+    <form class="" action="/admin"  method="post" name="addcomputer">    
+      {{ addcomputerform.hidden_tag() }}
+      <label for="addcomputer">Add computer</label>
+		  <div class="input-group col-md-4">
+        {{ addcomputerform.addcomputer(type="text", id="addcomputer", class="form-control", placeholder="Computer name")}}
+              <span class="input-group-btn">
+      <button type="submit" class="btn btn-default" type="button">Add</button>
+     </span>
+      </div>
+        {% for error in addcomputerform.addcomputer.errors %}<br>
+        <div class="alert alert-danger" role="alert"><span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span> {{error}}
+      </div>
+    {% endfor %}
+  	</form>
+  	<br>
+    {% if error %}
+      <div class="alert alert-danger" role="alert"><span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span> {{error}}
+      </div>
+    {% endif %}
+  </div>
+  <div class="row">
+
+    <h4>Remove computers</h4><br>
+    <table class="table table-striped">
+    {% for computer in allcomputers | batch(5, "&nbsp;") %}
+     <tr>
+     {% for comp in computer %}
+      {% if comp.computername is defined %}
+      <td>{{comp.computername}}  <a href="/delete/{{comp.computername}}"><span class="glyphicon glyphicon-remove glyph-red"></span></a></td>
+      {% endif %}
+      {% endfor %}
+    </tr>
+    {% endfor %}
+    </table>
+    <!--<a class="btn btn-default" type="button" href="/dbempty">Delete all</a>-->
+  </div>
+</div>
+</div>
+
+{% endblock %}

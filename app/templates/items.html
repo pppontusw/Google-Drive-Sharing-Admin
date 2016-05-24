@@ -1,0 +1,38 @@
+{% extends "main.html" %}
+{% block content %}
+<div class="container-fluid">
+    <div class="col-md-12">
+        <div class="row">
+            <h3>  </h3>
+        </div>
+        <div id="items" class="row">
+            <div class="input-group col-md-4">
+              <span class="input-group-addon" id="basic-addon1">Search</span>
+              <input type="text" class="search form-control" placeholder="Search for item" aria-describedby="basic-addon1">
+            </div><br>
+            <table class="table table-bordered table-striped">
+            <thead>
+            <tr>
+            <th>Title</th>
+            <th>Owners</th>
+            <th>Shared</th>
+            </tr>
+            </thead>
+            <tbody class="list">
+            {% for item in items %}
+            <tr>
+            <td class="name"><a href="/getitem/{{item.id}}">{{item.title}}</a></td>
+            <td class="owners"><a href="/getitem/{{item.id}}">{% for owner in item.owners %} {{owner}} {% if not loop.last %},{% endif %} {% endfor %}</a></td>
+            <td class="shared"><a href="/getitem/{{item.id}}">{{item.shared}}</a></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+            </table>
+          	{% if error %}
+        	    <div class="alert alert-danger" role="alert"><span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span> {{error}}
+        	    </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
