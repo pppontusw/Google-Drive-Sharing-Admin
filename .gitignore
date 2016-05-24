@@ -1,0 +1,7 @@
+/lib
+/include
+/bin
+/local
+/share
+config.ini
+*.json
