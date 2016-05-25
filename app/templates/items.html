@@ -6,10 +6,22 @@
             <h3>  </h3>
         </div>
         <div id="items" class="row">
+                     <a class="" href="/items/getall/{{user}}">First Page  <span class="glyphicon glyphicon-home"></span></a>
+
             <div class="input-group col-md-4">
+
               <span class="input-group-addon" id="basic-addon1">Search</span>
               <input type="text" class="search form-control" placeholder="Search for item" aria-describedby="basic-addon1">
-            </div><br>
+            </div>
+            <br>
+            {% if previouspage %}
+             <a class="" href="/items/getall/{{user}}?page={{page-1}}">Previous Page <span class="glyphicon glyphicon-triangle-left"></span></a>
+            {% else %}
+            <a  href="/items/getall/full/{{user}}">Show on one page</a>
+            {% endif %}
+            {% if nextpage %}
+            <a class="pull-right" href="/items/getall/{{user}}?page={{page+1}}">Next Page <span class="glyphicon glyphicon-triangle-right"></span></a>
+            {% endif %}
             <table class="table table-bordered table-striped">
             <thead>
             <tr>
@@ -22,8 +34,8 @@
             {% for item in items %}
             <tr>
             <td class="name"><a href="/getitem/{{item.id}}">{{item.title}}</a></td>
-            <td class="owners"><a href="/getitem/{{item.id}}">{% for owner in item.owners %} {{owner}} {% if not loop.last %},{% endif %} {% endfor %}</a></td>
-            <td class="shared"><a href="/getitem/{{item.id}}">{{item.shared}}</a></td>
+            <td class="owners">{% for owner in item.owners %}<a href="/users/get/{{owner}}"> {{owner}} {% if not loop.last %},{% endif %} </a>{% endfor %}</td>
+            <td class="shared"><a href="/item/get/{{item.id}}">{{item.shared}}</a></td>
             </tr>
             {% endfor %}
             </tbody>
