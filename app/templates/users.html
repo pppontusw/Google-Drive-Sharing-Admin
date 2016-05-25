@@ -20,8 +20,8 @@
             <tbody class="list">
             {% for user in users %}
             <tr>
-            <td class="name"><a href="/users/get/{{user.mail}}">{{user.name}}</a></td>
-            <td class="mail"><a href="/users/get/{{user.mail}}">{{user.mail}}</a></td>
+            <td class="name"><a href="/user/get/{{user.mail}}">{{user.name}}</a></td>
+            <td class="mail"><a href="/user/get/{{user.mail}}">{{user.mail}}</a></td>
             </tr>
             {% endfor %}
             </tbody>
