@@ -1,0 +1,38 @@
+{% extends "main.html" %}
+{% block content %}
+<div class="container-fluid">
+<div class="col-md-12">
+        <div id="item" class="row">              
+            <div class="input-group col-md-4">
+              <span class="input-group-addon" id="basic-addon1">Search</span>
+              <input type="text" class="search form-control" placeholder="Search for item (this page only)" aria-describedby="basic-addon1">
+            </div>
+            <h3> {{title}} </h3>
+            <br>
+            <table class="table table-bordered table-striped">
+            <tbody class="list">  
+            <tr>
+            <th>Owners</th>
+            {% for permission in permissions.owners %} 
+            <td class="owners">{{permission.name}}</td>
+            {% endfor %}
+            </tr>           
+            <tr>
+            <th>Writers</th>
+            {% for permission in permissions.writers %}
+            <td class="writers">{{permission.name}}</td>
+            {% endfor %}
+            </tr>
+            <tr>
+            <th>Readers</th>
+            {% for permission in permissions.readers %}
+            <td class="readers">{{permission.name}}</td>
+            {% endfor %}
+            <tr>
+            </tbody>
+            </table>
+        </div>
+</div>
+</div>
+
+{% endblock %}
