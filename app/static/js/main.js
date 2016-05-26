@@ -7,7 +7,7 @@ var options = {
 };
 
 var itemOptions = {
-	valueNames: [ 'name', 'mail' ]
+	valueNames: [ 'name' ]
 };
 
 var userList = new List('users', options);

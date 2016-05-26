@@ -1,10 +1,13 @@
 from flask import Flask
 import os
+from flask.ext.session import Session
 from config import basedir
 import datetime
 
 app = Flask(__name__)
 app.config.from_object('config')
+
+Session(app)
 
 @app.template_filter()
 def datetimefilter(value, format='%Y/%m/%d %H:%M'):

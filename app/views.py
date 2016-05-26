@@ -3,16 +3,16 @@ import json
 import flask
 import httplib2
 from flask import render_template, flash, redirect, request, session
+#from flask.ext.session import Session
 from .forms import SearchUserForm, DriveSearchQueryForm, DriveInsertPermissionForm, DriveRemovePermissionForm
 from oauth2client import client
 from oauth2client.service_account import ServiceAccountCredentials
 import urllib
-from config import admin, WTF_CSRF_ENABLED, SECRET_KEY
+from config import admin#, WTF_CSRF_ENABLED, SECRET_KEY
 import re
 
 SCOPES = ['https://www.googleapis.com/auth/admin.directory.user', 'https://www.googleapis.com/auth/admin.directory.group', 'https://www.googleapis.com/auth/drive']
 APPLICATION_NAME = 'Google Drive Sharing Admin'
-
 
 @app.route('/')
 def index():
@@ -65,7 +65,6 @@ def getItems(user):
 		useToken = session['pageTokens'][page]
 		url_get += makeQuery(drivesearchquery, user, useToken)
 		previouspage = True
-	print(url_get)
 	content = http_auth.request(url_get, "GET")
 	if content[0]['status'] == '400':
 		flash(content[1], 'danger')
@@ -77,7 +76,6 @@ def getItems(user):
 			itemarray += buildItems(info, shared)
 			url_get = 'https://www.googleapis.com/drive/v2/files?'
 			url_get += makeQuery(drivesearchquery, user, info['nextPageToken'])
-			print(url_get)
 			content = http_auth.request(url_get, "GET")
 			info = json.loads(content[1])
 		itemarray += buildItems(info, shared)
@@ -91,7 +89,8 @@ def getItems(user):
 			nextpage = False
 		itemarray += buildItems(info, shared)
 	for every in itemarray:
-		session['itemids'].append(every['id'])
+		sessionobj = {'id': every['id'], 'title': every['title']}
+		session['itemids'].append(sessionobj)
 	return render_template('items.html',
 							searchform=searchform, 
 							items=itemarray,
@@ -151,6 +150,41 @@ def getItem(user, item):
 							user=user,
 							insertform=insertform)
 
+@app.route('/items/delete/<user>', methods=['POST'])
+def deleteItems(user):
+	if 'itemids' in session:
+		items = session['itemids']
+		searchform = SearchUserForm()
+		driveremoveform = DriveRemovePermissionForm()
+		credentials = authenticate(user)
+		http_auth = credentials.authorize(httplib2.Http())	
+		session['successarray'] = []
+		session['failarray'] = []
+		if driveremoveform.validate_on_submit():
+			usertoremove = driveremoveform.data['driveuser']
+			url_get = 'https://www.googleapis.com/drive/v2/permissionIds/' + usertoremove
+			content = http_auth.request(url_get)
+			if content[0]['status'] == '200' or content[0]['status'] == '200':
+				info = json.loads(content[1])
+				permissionID = info['id']				
+				for item in items:
+					url_get = 'https://www.googleapis.com/drive/v2/files/' + item['id'] + '/permissions/' + permissionID
+					content = http_auth.request(url_get, "DELETE")
+					if content[0]['status'] == '200' or content[0]['status'] == '204':
+						successobj = {'id': item['id'],'title': item['title'], 'moduser': usertoremove, 'message': 'Successfully removed' }
+						session['successarray'].append(successobj)
+					else:
+						failobj = {'id': item['id'],'title': item['title'], 'moduser': usertoremove, 'message': json.loads(content[1])['error']['message'] }
+						session['failarray'].append(failobj)
+				return redirect(flask.url_for('getResults'))
+			else:
+				flash('Invalid userID', 'danger')
+		else:
+			flash('No item specified!', 'danger')
+	else:
+		flash('Invalid request!', 'danger')
+	return redirect(request.referrer)
+
 
 @app.route('/item/delete/<user>/<item>')
 def deleteItem(user, item):
@@ -171,6 +205,40 @@ def deleteItem(user, item):
 		redirect(request.referrer)
 
 
+@app.route('/items/insert/<user>', methods=['POST'])
+def insertItems(user):
+	session['successarray'] = []
+	session['failarray'] = []
+	if 'itemids' in session:
+		items = session['itemids']
+		insertform = DriveInsertPermissionForm()
+		searchform = SearchUserForm()
+		if insertform.validate_on_submit():
+			drrole = insertform.data['driverole']
+			drtype = insertform.data['drivetype']
+			drvalue = insertform.data['driveuser']
+			payload = "{\"role\": \"%s\", \"type\": \"%s\", \"value\": \"%s\"}" % (drrole, drtype, drvalue)
+			a = payload.encode('utf-8')
+			credentials = authenticate(user)
+			http_auth = credentials.authorize(httplib2.Http())
+			for item in items:
+				url_get = 'https://www.googleapis.com/drive/v2/files/' + item['id'] + '/permissions?sendNotificationEmails=false'
+				content = http_auth.request(url_get, method="POST", body=a, headers={'Content-Type': 'application/json'})
+				if content[0]['status'] == '200' or content[0]['status'] == '204':
+					successobj = {'id': item['id'],'title': item['title'], 'moduser': drvalue, 'message': 'Successfully added' }
+					session['successarray'].append(successobj)
+				else:
+					failobj = {'id': item['id'],'title': item['title'], 'moduser': drvalue, 'message': json.loads(content[1])['error']['message'] }
+					session['failarray'].append(failobj)
+			return redirect(flask.url_for('getResults'))
+		else:
+			flash('Invalid form data', 'danger')
+			return redirect(request.referrer)
+	else:
+		flash('Invalid request', 'danger')
+		return redirect(request.referrer)
+
+
 @app.route('/item/insert/<user>/<item>', methods=['POST'])
 def insertItem(user, item):
 	insertform = DriveInsertPermissionForm()
@@ -183,7 +251,7 @@ def insertItem(user, item):
 		a = payload.encode('utf-8')
 		credentials = authenticate(user)
 		http_auth = credentials.authorize(httplib2.Http())
-		url_get = 'https://www.googleapis.com/drive/v2/files/' + item + '/permissions'
+		url_get = 'https://www.googleapis.com/drive/v2/files/' + item + '/permissions?sendNotificationEmails=false'
 		content = http_auth.request(url_get, method="POST", body=a, headers={'Content-Type': 'application/json'})
 		if content[0]['status'] == '200' or content[0]['status'] == '204':
 			flash('Successfully added %s' % drvalue, 'success')
@@ -245,6 +313,20 @@ def searchUser():
 	else:
 		flash('You need to enter something in the search field', 'danger')
 		return redirect(request.referrer)
+
+
+@app.route('/results')
+def getResults():
+	searchform = SearchUserForm()
+	if session.get('successarray'):
+		successarray = session['successarray']
+	else:
+		successarray = False
+	if session.get('failarray'):
+		failarray = session['failarray']
+	else:
+		failarray = False
+	return render_template('result.html', successarray=successarray, failarray=failarray, searchform=searchform)
 
 def authenticate(user):
 	# get credentials
