@@ -328,6 +328,7 @@ def getResults():
 		failarray = False
 	return render_template('result.html', successarray=successarray, failarray=failarray, searchform=searchform)
 
+
 def authenticate(user):
 	# get credentials
     credentials = ServiceAccountCredentials.from_json_keyfile_name('secret_key.json', SCOPES)
@@ -335,6 +336,7 @@ def authenticate(user):
     delegated_credentials = credentials.create_delegated(user)
     # put credentials in session
     return delegated_credentials
+
 
 def buildItems(info, shared):
 	itemarray = []

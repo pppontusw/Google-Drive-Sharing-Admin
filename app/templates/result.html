@@ -19,25 +19,25 @@
         <th>Message</th>
         </tr>
         </thead>
-        <tbody class="list">
-        {% if successarray %}
-        {% for item in successarray %}
-        <tr class="success">
-        <td class="title">{{item.title}}</td>
-        <td class="user">{{item.moduser}}</td>
-        <td class="message">{{item.message}}</td>
-        </tr>
-        {% endfor %}
-        {% endif %}
-        {% if failarray %}
-        {% for item in failarray %}
-        <tr class="danger">
-        <td class="title">{{item.title}}</td>
-        <td class="user">{{item.moduser}}</td>
-        <td class="message">{{item.message}}</td>
-        {% endfor %}
-        {% endif %}
-        </tbody>
+          <tbody class="list">
+          {% if successarray %}
+            {% for item in successarray %}
+            <tr class="success">
+              <td class="title">{{item.title}}</td>
+              <td class="user">{{item.moduser}}</td>
+              <td class="message">{{item.message}}</td>
+            </tr>
+            {% endfor %}
+          {% endif %}
+          {% if failarray %}
+            {% for item in failarray %}
+              <tr class="danger">
+              <td class="title">{{item.title}}</td>
+              <td class="user">{{item.moduser}}</td>
+              <td class="message">{{item.message}}</td>
+            {% endfor %}
+          {% endif %}
+          </tbody>
         </table>
       </div>
     </div>
