@@ -55,26 +55,17 @@ def getItems(user):
 	url_get = 'https://www.googleapis.com/drive/v2/files?'
 	if page == 0:
 		session['pageTokens'] = ['']
-		if drivesearchquery != False:
-			query = urllib.urlencode({'q': '(\'' + user + '\' in owners) and ' + drivesearchquery})
-		else:
-			query = urllib.urlencode({'q': '\'' + user + '\' in owners'})
+		url_get += makeQuery(drivesearchquery, user, False)
 		previouspage = False
 	elif page == 'all':
-		if drivesearchquery != False:
-			query = urllib.urlencode({'q': '(\'' + user + '\' in owners) and ' + drivesearchquery})
-		else:
-			query = urllib.urlencode({'q': '\'' + user + '\' in owners'})
+		url_get += makeQuery(drivesearchquery, user, False)
 		previouspage = False
 		nextpage = False
 	else:
 		useToken = session['pageTokens'][page]
-		if drivesearchquery != False:
-			query = urllib.urlencode({'q': '(\'' + user + '\' in owners) and ' + drivesearchquery, 'pageToken': useToken})
-		else:
-			query = urllib.urlencode({'q': '\'' + user + '\' in owners', 'pageToken': useToken})
+		url_get += makeQuery(drivesearchquery, user, useToken)
 		previouspage = True
-	url_get += query
+	print(url_get)
 	content = http_auth.request(url_get, "GET")
 	if content[0]['status'] == '400':
 		flash(content[1], 'danger')
@@ -83,39 +74,13 @@ def getItems(user):
 	itemarray = []
 	if page == 'all':
 		while 'nextPageToken' in info:
-			infolist = info['items']
-			for item in infolist:
-				if shared == True:
-					if item['shared'] == True:
-						owners = item['owners']
-						ownersarr = []
-						for owner in owners:
-							ownersarr.append(owner['emailAddress'])
-						itemobj = { 'title': item['title'], 'id': item['id'], 'shared': item['shared'], 'owners': ownersarr }
-						itemarray.append(itemobj)
-				elif shared == 'no':
-					if item['shared'] == False:
-						owners = item['owners']
-						ownersarr = []
-						for owner in owners:
-							ownersarr.append(owner['emailAddress'])
-						itemobj = { 'title': item['title'], 'id': item['id'], 'shared': item['shared'], 'owners': ownersarr }
-						itemarray.append(itemobj)
-				else:
-					owners = item['owners']
-					ownersarr = []
-					for owner in owners:
-						ownersarr.append(owner['emailAddress'])
-					itemobj = { 'title': item['title'], 'id': item['id'], 'shared': item['shared'], 'owners': ownersarr }
-					itemarray.append(itemobj)
+			itemarray += buildItems(info, shared)
 			url_get = 'https://www.googleapis.com/drive/v2/files?'
-			if drivesearchquery != False:
-				query = urllib.urlencode({'q': '(\'' + user + '\' in owners) and ' + drivesearchquery, 'pageToken': info['nextPageToken']})
-			else:
-				query = urllib.urlencode({'q': '\'' + user + '\' in owners', 'pageToken': info['nextPageToken']})
-			url_get += query
+			url_get += makeQuery(drivesearchquery, user, info['nextPageToken'])
+			print(url_get)
 			content = http_auth.request(url_get, "GET")
 			info = json.loads(content[1])
+		itemarray += buildItems(info, shared)
 	else:
 		if 'nextPageToken' in info:
 			nextpage = True
@@ -124,34 +89,9 @@ def getItems(user):
 				session['pageTokens'].insert(page+1, token)
 		else:
 			nextpage = False
-		infolist = info['items']
-		for item in infolist:
-			if shared == True:
-				if item['shared'] == True:
-					owners = item['owners']
-					ownersarr = []
-					for owner in owners:
-						ownersarr.append(owner['emailAddress'])
-					itemobj = { 'title': item['title'], 'id': item['id'], 'shared': item['shared'], 'owners': ownersarr }
-					itemarray.append(itemobj)
-			elif shared == 'no':
-				if item['shared'] == False:
-					owners = item['owners']
-					ownersarr = []
-					for owner in owners:
-						ownersarr.append(owner['emailAddress'])
-					itemobj = { 'title': item['title'], 'id': item['id'], 'shared': item['shared'], 'owners': ownersarr }
-					itemarray.append(itemobj)
-			else:
-				owners = item['owners']
-				ownersarr = []
-				for owner in owners:
-					ownersarr.append(owner['emailAddress'])
-				itemobj = { 'title': item['title'], 'id': item['id'], 'shared': item['shared'], 'owners': ownersarr }
-				itemarray.append(itemobj)
+		itemarray += buildItems(info, shared)
 	for every in itemarray:
 		session['itemids'].append(every['id'])
-		print session['itemids']
 	return render_template('items.html',
 							searchform=searchform, 
 							items=itemarray,
@@ -313,3 +253,45 @@ def authenticate(user):
     delegated_credentials = credentials.create_delegated(user)
     # put credentials in session
     return delegated_credentials
+
+def buildItems(info, shared):
+	itemarray = []
+	infolist = info['items']
+	for item in infolist:
+		if shared == True:
+			if item['shared'] == True:
+				owners = item['owners']
+				ownersarr = []
+				for owner in owners:
+					ownersarr.append(owner['emailAddress'])
+				itemobj = { 'title': item['title'], 'id': item['id'], 'shared': item['shared'], 'owners': ownersarr }
+				itemarray.append(itemobj)
+		elif shared == 'no':
+			if item['shared'] == False:
+				owners = item['owners']
+				ownersarr = []
+				for owner in owners:
+					ownersarr.append(owner['emailAddress'])
+				itemobj = { 'title': item['title'], 'id': item['id'], 'shared': item['shared'], 'owners': ownersarr }
+				itemarray.append(itemobj)
+		else:
+			owners = item['owners']
+			ownersarr = []
+			for owner in owners:
+				ownersarr.append(owner['emailAddress'])
+			itemobj = { 'title': item['title'], 'id': item['id'], 'shared': item['shared'], 'owners': ownersarr }
+			itemarray.append(itemobj)
+	return itemarray
+
+def makeQuery(drivesearchquery, user, token):
+	if drivesearchquery != False and token:
+		query = urllib.urlencode({'q': drivesearchquery + ' and \'' + user + '\' in owners', 'pageToken': token})
+	elif drivesearchquery != False and token == False:
+		query = urllib.urlencode({'q': drivesearchquery + ' and \'' + user + '\' in owners'})
+	elif drivesearchquery == False and token:
+		query = urllib.urlencode({'q': '\'' + user + '\' in owners', 'pageToken': token})
+	elif drivesearchquery == False and token == False:
+		query = urllib.urlencode({'q': '\'' + user + '\' in owners'})
+	else:
+		flash('this really should not be happening', 'danger')
+	return query

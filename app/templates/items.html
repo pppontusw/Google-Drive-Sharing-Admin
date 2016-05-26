@@ -17,20 +17,18 @@
           </form><br>
             {% if page != 'all' %}
             <div class="btn-group" role="group" aria-label="...">
-             <a class="btn btn-default" href="/items/get/{{user}}?page=all{% if shared == True %}&shared=True{% elif shared == 'no'%}&shared=False{% endif %}"><span class="glyphicon glyphicon-list"></span> Show all on one page   </a> 
+             <a class="btn btn-default" href="/items/get/{{user}}?page=all"><span class="glyphicon glyphicon-list"></span> Show all on one page   </a> 
                <a class="btn btn-default" href="/items/get/{{user}}?page=all&shared=True"><span class="glyphicon glyphicon-share"></span> Show all shared</a>
             </div>
             {% elif not previouspage and page == 'all' and not searchquery %}
-            <a class="btn btn-default" href="/items/get/{{user}}?page=0{% if shared == True %}&shared=True{% elif shared == 'no'%}&shared=False{% endif %}">Go back to first page</a>
+            <a class="btn btn-default" href="/items/get/{{user}}?page=0">Go back to first page</a>
             {% endif %}<br><br>
-            <div class="input-group col-md-4">
-              <span class="input-group-addon" id="basic-addon1">Filter</span>
-              <input type="text" class="search form-control" placeholder="Filter for items (this page only)" aria-describedby="basic-addon1">
-            </div><br>
+            <p> {{items|length}} items </p>
             {% if previouspage %}
             <a class="" href="/items/get/{{user}}{% if shared == True %}?shared=True{% elif shared == 'no'%}?shared=False{% endif %}"><span class="glyphicon glyphicon-fast-backward"></span> First Page</a>
              <a class="" href="/items/get/{{user}}?page={{page-1}}{% if shared %}&shared=True{% elif shared == 'no'%}&shared=False{% endif %}"><span class="glyphicon glyphicon-step-backward"></span>Previous Page</a>
             {% endif %}
+
             {% if nextpage %}
             <a class="pull-right" href="/items/get/{{user}}?page={{page+1}}{% if shared == True %}&shared=True{% elif shared == 'no'%}&shared=False{% endif %}">Next Page<span class="glyphicon glyphicon-step-forward"></span></a>
             {% endif %}
