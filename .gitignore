@@ -9,3 +9,4 @@ config.py
 *.json
 *.pyc
 app.db
+db_repository/

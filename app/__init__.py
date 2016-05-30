@@ -7,6 +7,7 @@ import datetime
 
 app = Flask(__name__)
 app.config.from_object('config')
+db = SQLAlchemy(app)
 
 Session(app)
 
@@ -30,4 +31,4 @@ def datetimecomp(value):
 
 app.jinja_env.filters['datetimefilter'] = datetimefilter
 
-from app import views
+from app import views, models
