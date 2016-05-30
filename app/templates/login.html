@@ -1,0 +1,27 @@
+{% extends "main.html" %}
+{% block content %}
+<div class="container ">
+  <div class="row ">
+  <div class="col-md-3">
+  </div>
+    <div class="col-md-6">
+      <form class="form" action="/login" method="post">
+      <form class="form-signin">
+      {{ loginform.hidden_tag() }}
+        <h2 class="form-signin-heading">Please sign in</h2>
+        <label for="inputEmail" class="sr-only">Email address</label>
+        {{ loginform.loginuser(id="inputEmail", class="form-control", placeholder="Username", type="text")}} 
+        <label for="inputPassword" class="sr-only">Password</label>
+        {{ loginform.loginpass(id="inputPassword", class="form-control", placeholder="Password", type="password")}}
+        <div class="checkbox">
+          <label>
+          {{ loginform.loginremember()}} Remember me
+          </label>
+        </div>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+      </form>          
+    </div>
+  </div>
+</div>
+
+{% endblock %}

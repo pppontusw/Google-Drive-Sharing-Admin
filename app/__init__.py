@@ -1,6 +1,7 @@
 from flask import Flask
 import os
 from flask.ext.session import Session
+from flask.ext.sqlalchemy import SQLAlchemy
 from config import basedir
 import datetime
 
