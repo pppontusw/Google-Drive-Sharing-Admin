@@ -3,12 +3,11 @@ import json
 import flask
 import httplib2
 from flask import render_template, flash, redirect, request, session
-#from flask.ext.session import Session
 from .forms import SearchUserForm, DriveSearchQueryForm, DriveInsertPermissionForm, DriveRemovePermissionForm
 from oauth2client import client
 from oauth2client.service_account import ServiceAccountCredentials
 import urllib
-from config import admin#, WTF_CSRF_ENABLED, SECRET_KEY
+from config import admin, WTF_CSRF_ENABLED, SECRET_KEY
 import re
 
 SCOPES = ['https://www.googleapis.com/auth/admin.directory.user', 'https://www.googleapis.com/auth/admin.directory.group', 'https://www.googleapis.com/auth/drive']
