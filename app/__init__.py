@@ -4,11 +4,14 @@ from flask.ext.session import Session
 from flask.ext.sqlalchemy import SQLAlchemy
 from config import basedir
 import datetime
+from flask.ext.login import LoginManager
+ 
 
 app = Flask(__name__)
 app.config.from_object('config')
 db = SQLAlchemy(app)
-
+login_manager = LoginManager()
+login_manager.init_app(app)
 Session(app)
 
 @app.template_filter()

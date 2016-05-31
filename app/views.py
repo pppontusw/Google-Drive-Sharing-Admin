@@ -1,9 +1,9 @@
-from app import app
+from app import app, login_manager, db
 import json
-import flask
 import httplib2
-from flask import render_template, flash, redirect, request, session
+from flask import render_template, flash, redirect, request, session, url_for
 from .forms import SearchUserForm, DriveSearchQueryForm, DriveInsertPermissionForm, DriveRemovePermissionForm
+from .models import User
 from oauth2client import client
 from oauth2client.service_account import ServiceAccountCredentials
 import urllib
@@ -12,6 +12,22 @@ import re
 
 SCOPES = ['https://www.googleapis.com/auth/admin.directory.user', 'https://www.googleapis.com/auth/admin.directory.group', 'https://www.googleapis.com/auth/drive']
 APPLICATION_NAME = 'Google Drive Sharing Admin'
+
+login_manager.login_view = 'login'
+
+@login_manager.user_loader
+def load_user(id):
+    return User.query.get(int(id))
+
+
+@app.route('/login')
+def login:
+	print User.query.all()
+	if User.query.filter_by(username='admin').first() == None:
+		user = User(username='admin', password='password')
+		db.session.add(user)
+		db.session.commit()
+
 
 @app.route('/')
 def index():
@@ -175,7 +191,7 @@ def deleteItems(user):
 					else:
 						failobj = {'id': item['id'],'title': item['title'], 'moduser': usertoremove, 'message': json.loads(content[1])['error']['message'] }
 						session['failarray'].append(failobj)
-				return redirect(flask.url_for('getResults'))
+				return redirect(url_for('getResults'))
 			else:
 				flash('Invalid userID', 'danger')
 		else:
@@ -229,7 +245,7 @@ def insertItems(user):
 				else:
 					failobj = {'id': item['id'],'title': item['title'], 'moduser': drvalue, 'message': json.loads(content[1])['error']['message'] }
 					session['failarray'].append(failobj)
-			return redirect(flask.url_for('getResults'))
+			return redirect(url_for('getResults'))
 		else:
 			flash('Invalid form data', 'danger')
 			return redirect(request.referrer)
@@ -305,7 +321,7 @@ def searchUser():
 	searchform = SearchUserForm()
 	if searchform.validate_on_submit():
 		if re.match(r"^[A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]*$", searchform.data['searchuser']):
-			return redirect(flask.url_for('getUser', user=searchform.data['searchuser']))
+			return redirect(url_for('getUser', user=searchform.data['searchuser']))
 		else:
 			flash('Not a valid email address', 'danger')
 			return redirect(request.referrer)
