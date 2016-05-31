@@ -18,3 +18,7 @@ class DriveInsertPermissionForm(Form):
 
 class DriveRemovePermissionForm(Form):
 	driveuser = StringField('User', validators=[DataRequired()])
+
+class LoginForm(Form):
+	loginuser = StringField('Username', validators=[DataRequired()])
+	loginpass = StringField('Password', validators=[DataRequired()])

@@ -1,35 +1,69 @@
 from app import app, login_manager, db
 import json
 import httplib2
-from flask import render_template, flash, redirect, request, session, url_for
-from .forms import SearchUserForm, DriveSearchQueryForm, DriveInsertPermissionForm, DriveRemovePermissionForm
+from flask import render_template, flash, redirect, request, session, url_for, g
+from flask.ext.login import login_user , logout_user , current_user , login_required
+from .forms import SearchUserForm, DriveSearchQueryForm, DriveInsertPermissionForm, DriveRemovePermissionForm, LoginForm
 from .models import User
 from oauth2client import client
 from oauth2client.service_account import ServiceAccountCredentials
 import urllib
 from config import admin, WTF_CSRF_ENABLED, SECRET_KEY
 import re
+import random, string
+import bcrypt
 
 SCOPES = ['https://www.googleapis.com/auth/admin.directory.user', 'https://www.googleapis.com/auth/admin.directory.group', 'https://www.googleapis.com/auth/drive']
 APPLICATION_NAME = 'Google Drive Sharing Admin'
 
 login_manager.login_view = 'login'
 
+@app.before_request
+def before_request():
+    g.user = current_user
+
 @login_manager.user_loader
 def load_user(id):
     return User.query.get(int(id))
 
-
-@app.route('/login')
-def login:
-	print User.query.all()
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+	searchform = SearchUserForm()
+	loginform = LoginForm()
 	if User.query.filter_by(username='admin').first() == None:
-		user = User(username='admin', password='password')
+		passw = mkPass(26)
+		hashedpass = bcrypt.hashpw(passw, bcrypt.gensalt())
+		user = User(username='admin', password=hashedpass)
+		print 'This is the first time the application is running, your admin account will be created:\nUsername: admin\nPassword: %s' % passw
 		db.session.add(user)
-		db.session.commit()
+		db.session.commit()	
+	if request.method == 'GET':
+		return render_template('login.html', searchform=searchform, loginform=loginform)
+	else:
+		if loginform.validate_on_submit():
+			user = User.query.filter_by(username=loginform.data['loginuser']).first()
+			if user is None:
+				flash('Username or Password is invalid', 'danger')
+				return redirect(url_for('login'))
+			if bcrypt.hashpw(bytes(loginform.data['loginpass']), bytes(user.password)) == bytes(user.password):
+				login_user(user)
+				flash('Successfully logged in', 'success')
+				return redirect(request.args.get('next') or url_for('index'))
+			else:
+				flash('Username or Password is invalid', 'danger')
+				return redirect(url_for('login'))
+		else:
+			flash('Something went wrong when reading the form, please try again', 'danger')
+			return redirect(url_for('login'))
 
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
 
 @app.route('/')
+@login_required
 def index():
 	searchform = SearchUserForm()
 	credentials = authenticate(admin)
@@ -37,6 +71,7 @@ def index():
 							searchform=searchform)
 
 @app.route('/items/get/<user>', methods=['GET', 'POST'])
+@login_required
 def getItems(user):
 	session['itemids'] = []
 	searchform = SearchUserForm()
@@ -121,6 +156,7 @@ def getItems(user):
 
 
 @app.route('/item/get/<user>/<item>')
+@login_required
 def getItem(user, item):
 	insertform = DriveInsertPermissionForm()
 	if 'title' in request.args:
@@ -166,6 +202,7 @@ def getItem(user, item):
 							insertform=insertform)
 
 @app.route('/items/delete/<user>', methods=['POST'])
+@login_required
 def deleteItems(user):
 	if 'itemids' in session:
 		items = session['itemids']
@@ -202,6 +239,7 @@ def deleteItems(user):
 
 
 @app.route('/item/delete/<user>/<item>')
+@login_required
 def deleteItem(user, item):
 	if 'id' in request.args:
 		permissionID = request.args['id']
@@ -221,6 +259,7 @@ def deleteItem(user, item):
 
 
 @app.route('/items/insert/<user>', methods=['POST'])
+@login_required
 def insertItems(user):
 	session['successarray'] = []
 	session['failarray'] = []
@@ -255,6 +294,7 @@ def insertItems(user):
 
 
 @app.route('/item/insert/<user>/<item>', methods=['POST'])
+@login_required
 def insertItem(user, item):
 	insertform = DriveInsertPermissionForm()
 	searchform = SearchUserForm()
@@ -279,6 +319,7 @@ def insertItem(user, item):
 
 
 @app.route('/user/get/<user>')
+@login_required
 def getUser(user):
 	searchform = SearchUserForm()
 	drivesearchform = DriveSearchQueryForm()
@@ -294,6 +335,7 @@ def getUser(user):
 
 
 @app.route('/users/list')
+@login_required
 def listUsers():
 	searchform = SearchUserForm()
 	credentials = authenticate(admin)
@@ -317,6 +359,7 @@ def listUsers():
 
 
 @app.route('/search', methods=['POST'])
+@login_required
 def searchUser():
 	searchform = SearchUserForm()
 	if searchform.validate_on_submit():
@@ -331,6 +374,7 @@ def searchUser():
 
 
 @app.route('/results')
+@login_required
 def getResults():
 	searchform = SearchUserForm()
 	if session.get('successarray'):
@@ -394,3 +438,8 @@ def makeQuery(drivesearchquery, user, token):
 	else:
 		flash('this really should not be happening', 'danger')
 	return query
+
+def mkPass(length):
+	length = length
+	chars = string.ascii_letters + string.digits + '!@#$%^&*()'
+	return ''.join(random.SystemRandom().choice(chars) for i in range(length))
