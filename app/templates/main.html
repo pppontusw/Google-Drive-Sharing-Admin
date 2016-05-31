@@ -12,6 +12,7 @@
     <nav class="navbar navbar-default">
       <div class="container">
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+        {% if g.user.is_authenticated %}
           <form class="navbar-form navbar-right" action="/search" method="post">
             <div class="form-group">
               {{ searchform.hidden_tag() }}
@@ -20,11 +21,19 @@
             <button type="submit" class="btn btn-default">Go</button>
           </form>
           <ul class="nav navbar-nav navbar-left">
-            <li {%- if request.path == "/" %} class="active" {% endif %}><a href="/"><span class="glyphicon glyphicon-home" aria-hidden="true"></span> Home</a></li>       
+            <li {%- if request.path == "/" %} class="active" {% endif %}><a href="/">Home</a></li>       
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            <li {%- if request.path == "/users/list" %} class="active{% endif %} "><a class="showrefresh" href="/users/list"><span class="glyphicon glyphicon-list" aria-hidden="true"></span> List Users</a></li>    
-          </ul>         
+            <li {%- if request.path == "/users/list" %} class="active{% endif %} "><a class="showrefresh" href="/users/list"> List Users</a></li>    
+            
+            <li {%- if request.path == "/logout" %} class="active{% endif %} "><a class="showrefresh" href="/logout"> Logout</a></li>    
+            
+          </ul>  
+          {% else %}
+              <ul class="nav navbar-nav navbar-left">
+            <li {%- if request.path == "/login" %} class="active" {% endif %}><a href="/login"></span> Login</a></li>       
+          </ul>
+          {% endif %}
         </div>
       </div>
     </nav>    

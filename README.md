@@ -2,9 +2,7 @@
 
 This is a simple web app using the Google Drive API to find and modify permissions on a lot of items simultaneously. This is the service account version which will enable you to use a service account to modify permissions on any user in your domain (provided you have turned on domain wide delegation) 
 
-## BE CAREFUL! If you leave this application exposed you will give anyone who can access it full access to modifying permissions on every single one of your users documents. SO JUST DON'T DO THAT!!! 
-
-The app will only listen on localhost:5000 by default and I would suggest you keep it that way and use it via VNC or something on a server with an extremely secure password, or at the VERY LEAST protect the app through a web server with authentication.. but I am not sure I would personally do that considering the amount of bad things this can do :)
+## BE CAREFUL! If you leave this application exposed you will give anyone who can access it full access to modifying permissions on every single one of your users documents. SO DON'T DO THAT!
 
 ## Use
 
@@ -24,6 +22,18 @@ admin = 'admin@example.com' #this should be a superadmin account that we will im
 WTF_CSRF_ENABLED = True
 SECRET_KEY = str(uuid.uuid4())
 SESSION_TYPE = 'filesystem' #change the session type if you want, this is using Flask-Session
+SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
+SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir, 'db_repository')
 ```
 
-Run the app (python run.py)
+Install rerequisites for bcrypt:
+```sudo apt-get install build-essential libffi-dev python-dev / sudo yum install gcc libffi-devel python-devel```
+
+Install pip requirements
+```pip install -r requirements.txt```
+
+Create the database
+```python db_create.py```
+
+Run the app (first time via console as the randomly generated password will be output to console the first time you run the app)
+```python run.py```
